@@ -1,0 +1,70 @@
+body {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  background-color: var(--surface-a);
+  font-family: var(--font-family);
+  font-weight: 400;
+  color: var(--text-color);
+}
+
+.color-up {
+  width: 20rem;
+  margin-bottom: 1.5em;
+  background: var(--teal-600);
+}
+
+.color-down {
+  width: 20rem;
+  min-height: 15.8rem;
+  margin-bottom: 2em;
+  background: var(--pink-800);
+}
+
+.response-2xx {
+  background: var(--teal-600);
+}
+
+.response-5xx {
+  background: var(--pink-800);
+}
+
+.response-404 {
+  background: var(--blue-800);
+}
+
+.response-4xx {
+  background: var(--yellow-700);
+}
+
+.div-center {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.div-end {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.div-start {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+}
+
+.clickable:hover {
+  cursor: pointer;
+}
+
+.p-button-text.p-button.p-component.p-button-icon-only.p-ripple {
+  display: none;
+}

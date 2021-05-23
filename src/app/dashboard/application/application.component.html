@@ -1,0 +1,226 @@
+<div class="p-m-3">
+  <div class="p-grid">
+    <div class="p-sm-3 p-md-3 p-lg-3 p-xl-3">
+      <fa-icon [icon]="faChartLine" [styles]="{'font-size': '5em'}"></fa-icon>
+    </div>
+  </div>
+  <div class="div-between">
+    <div>
+      <p>Actuator Monitoring</p>
+    </div>
+    <div>
+      <button pButton pRipple type="button" title="Add application" class="p-button-rounded" (click)="toogleModal()">&nbsp;<fa-icon [icon]="faPlus"></fa-icon></button>&nbsp;
+      <button pButton pRipple type="button" title="Enable application" class="p-button-rounded" (click)="toogleEnableModal()">&nbsp;<fa-icon [icon]="faPlug"></fa-icon></button>
+    </div>
+  </div>
+</div>
+
+<p-divider align="left">
+  <div class="p-d-inline-flex p-ai-center">
+      <fa-icon [icon]="faCog" [styles]="{'font-size': '1.5em'}"></fa-icon>
+      &nbsp;
+      <b>Applications</b>
+  </div>
+</p-divider>
+
+<div class="div-space">
+  <p>Updated at {{updatedAt | date: 'dd/MM/yyyy HH:mm:ss' }}</p>
+  <p-button label="Refresh" (onClick)="findAllActiveApplication()" id="refresh"  styleClass="p-button-outlined"><fa-icon [icon]="faSync"></fa-icon>&nbsp;</p-button>
+</div>
+
+<div *ngIf="isValidAppList()" class="applications-container p-m-3">
+  <p-card *ngFor="let app of applications" header="{{app?.name}}" title="{{app?.systemHealth?.status}}" styleClass="{{app?.systemHealth?.status === healthStatus.UP ? 'color-up' : 'color-down'}}">
+    <p><span style="font-size: 2.3em;">{{app?.systemHealth?.status === healthStatus.UP ? 'Status UP' : 'Status DOWN'}}</span>&nbsp;&nbsp;
+      <fa-icon [icon]="app?.systemHealth?.status === healthStatus.UP ? faCheckCircle : faBug" [styles]="{'font-size': '2.5em'}"></fa-icon>
+    </p>
+    <a *ngIf="app?.systemHealth?.status === healthStatus.UP" class="div-center clickable remove-link-color" [routerLink]="'/charts/'+app.context" [state]="{data: app}">
+      <fa-icon [icon]="faTachometerAlt" title="Dashboard" [styles]="{'font-size': '2.5em'}"></fa-icon>
+    </a>
+    <div ngClass="{{app?.systemHealth?.status === healthStatus.UP ? 'div-between' : 'div-right'}}">
+      <div *ngIf="app?.systemHealth?.status === healthStatus.UP">
+        <button pButton pRipple (click)="getAppInfoAndEnv(app)" title="info" type="button" class="p-button-rounded p-button-text p-button-plain"><fa-icon [icon]="faInfo"></fa-icon></button>
+      </div>
+      <div>
+        <button pButton pRipple (click)="toogleUpdateModal(app)" title="edit" type="button" class="p-button-rounded p-button-text p-button-plain"><fa-icon [icon]="faPencilAlt"></fa-icon></button>
+        <button pButton pRipple (click)="deleteApplication(app)" title="disable" type="button" class="p-button-rounded p-button-text p-button-plain"><fa-icon [icon]="faTrashAlt"></fa-icon></button>
+      </div>
+    </div>
+  </p-card>
+</div>
+
+<p-dialog header="Add Application" [(visible)]="display" position="top" [closable]="false"  [style]="{width: '50vw', 'margin-top': '5rem'}">
+  <form id="add-form" [formGroup]="insertForm" (ngSubmit)="onAddApplication()">
+    <div class="p-fluid">
+      <div class="p-field">
+          <label for="name">Name</label>
+          <input formControlName="name" id="name" type="text" pInputText />
+      </div>
+      <div class="p-field">
+          <label for="context">Context</label>
+          <input class="p-error" formControlName="context" id="context" type="text" pInputText />
+      </div>
+      <div class="p-field">
+        <label for="url">Monitoring URL</label>
+        <input formControlName="monitoringUrl" id="monitoringUrl" type="text" pInputText />
+      </div>
+    </div>
+    <p-footer>
+      <div class="div-right">
+        <div style="margin: 0.5rem;">
+          <p-button label="Close" (onClick)="toogleModal()"  styleClass="p-button-outlined p-button-secondary"><fa-icon [icon]="faBan"></fa-icon>&nbsp;</p-button>
+        </div>
+        <div style="margin: 0.5rem;" *ngIf="insertForm.valid">
+          <p-button label="Save" type="submit" styleClass="p-button-outlined"><fa-icon [icon]="faSave"></fa-icon>&nbsp;</p-button>
+        </div>
+      </div>
+    </p-footer>
+  </form>
+</p-dialog>
+
+<p-dialog header="Update Application" [(visible)]="displayUpdate" position="top" [closable]="false"  [style]="{width: '50vw', 'margin-top': '5rem'}">
+  <form id="add-form" [formGroup]="updateForm" (ngSubmit)="updateApplication()">
+    <div class="p-fluid">
+      <div class="p-field">
+          <label for="name">Name</label>
+          <input formControlName="name" id="name" (ngModel)="updatableApp?.name" type="text" pInputText />
+      </div>
+      <div class="p-field">
+          <label for="context">Context</label>
+          <input class="p-error" formControlName="context" id="context" (ngModel)="updatableApp?.context" type="text" pInputText />
+      </div>
+      <div class="p-field">
+        <label for="url">Monitoring URL</label>
+        <input formControlName="monitoringUrl" id="monitoringUrl" (ngModel)="updatableApp?.monitoringUrl" type="text" pInputText />
+      </div>
+    </div>
+    <p-footer>
+      <div class="div-right">
+        <div style="margin: 0.5rem;">
+          <p-button label="Close" (onClick)="toogleUpdateModal()"  styleClass="p-button-outlined p-button-secondary"><fa-icon [icon]="faBan"></fa-icon>&nbsp;</p-button>
+        </div>
+        <div style="margin: 0.5rem;" *ngIf="updateForm.valid">
+          <p-button label="Save" type="submit" styleClass="p-button-outlined"><fa-icon [icon]="faSave"></fa-icon>&nbsp;</p-button>
+        </div>
+      </div>
+    </p-footer>
+  </form>
+</p-dialog>
+
+<p-dialog header="Enable Application" [(visible)]="displayEnableModal" position="top" [closable]="false"  [style]="{width: '50vw', 'margin-top': '5rem'}">
+  <div class="p-sm-12 p-md-12 p-lg-12">
+    <p-table [value]="inactiveApplications" [paginator]="true" [rows]="10" [showCurrentPageReport]="true" id="inactive-table"
+    currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries" [rowsPerPageOptions]="[10,25,50]">
+    <ng-template pTemplate="caption">
+      <div class="p-d-flex"></div>
+    </ng-template>
+    <ng-template pTemplate="header">
+        <tr>
+            <th>Name</th>
+            <th>Is Active ?</th>
+        </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-app>
+        <tr>
+          <td>{{app.name}}</td>
+          <td>
+            <div class="p-field-checkbox">
+              <p-checkbox name="isActive" [binary]="true" [(ngModel)]="app.isActive" inputId="isActive"></p-checkbox>
+              <label for="isActive"></label>
+            </div>
+          </td>
+        </tr>
+    </ng-template>
+    <ng-template pTemplate="paginatorleft">
+        <p-button type="button" icon="pi pi-plus" styleClass="p-button-text"></p-button>
+    </ng-template>
+    <ng-template pTemplate="paginatorright">
+        <p-button type="button" icon="pi pi-cloud" styleClass="p-button-text"></p-button>
+    </ng-template>
+    </p-table>
+  </div>
+  <p-footer>
+    <div class="div-right">
+      <div style="margin: 0.5rem;">
+        <p-button label="Close" (onClick)="toogleEnableModal()"  styleClass="p-button-outlined p-button-secondary"><fa-icon [icon]="faBan"></fa-icon>&nbsp;</p-button>
+      </div>
+      <div style="margin: 0.5rem;" *ngIf="showEnableButton()">
+        <p-button label="Save" type="submit" (onClick)="activeApplications()" styleClass="p-button-outlined"><fa-icon [icon]="faSave"></fa-icon>&nbsp;</p-button>
+      </div>
+    </div>
+  </p-footer>
+</p-dialog>
+
+<p-dialog header="{{appInfo?.app.name}}" [(visible)]="isModalInfoVisible" [style]="{width: '50vw'}" [baseZIndex]="10000">
+  <h2 class="div-center">APP INFO</h2>
+  <div id="app-info">
+    <p>
+      <strong>Description:</strong>
+      {{appInfo?.app.description}}
+    </p>
+    <p>
+      <strong>Version:</strong>
+      {{appInfo?.app.version}}
+    </p>
+  </div>
+  <h2 class="div-center">ENVIRONMENTS</h2>
+  <div id="app-envs">
+    <h3>Operational System</h3>
+    <p>
+      <strong>System:</strong>
+      {{appEnv?.properties['os.name'].value}}
+    </p>
+    <p>
+      <strong>Arch:</strong>
+      {{appEnv?.properties['os.arch'].value}}
+    </p>
+    <p>
+      <strong>Language:</strong>
+      {{appEnv?.properties['user.language'].value}}
+    </p>
+    <p>
+      <strong>Country:</strong>
+      {{appEnv?.properties['user.country'].value}}
+    </p>
+    <p>
+      <strong>Time Zone:</strong>
+      {{appEnv?.properties['user.timezone'].value}}
+    </p>
+    <p>
+      <strong>File Separator:</strong>
+      {{appEnv?.properties['file.separator'].value}}
+    </p>
+    <p>
+      <strong>File Encoding:</strong>
+      {{appEnv?.properties['file.encoding'].value}}
+    </p>
+    <p>
+      <strong>File Log Encoding:</strong>
+      {{appEnv?.properties.FILE_LOG_CHARSET.value}}
+    </p>
+    <p>
+      <strong>Console Log Encoding:</strong>
+      {{appEnv?.properties.CONSOLE_LOG_CHARSET.value}}
+    </p>
+    <h3>JVM</h3>
+    <p>
+      <strong>Version:</strong>
+      {{appEnv?.properties['java.version'].value}}
+    </p>
+    <p>
+      <strong>Version Date:</strong>
+      {{appEnv?.properties['java.version.date'].value}}
+    </p>
+    <p>
+      <strong>Name:</strong>
+      {{appEnv?.properties['java.vm.name'].value}}
+    </p>
+    <p>
+      <strong>Runtime:</strong>
+      {{appEnv?.properties['java.runtime.version'].value}}
+    </p>
+  </div>
+  <ng-template pTemplate="footer">
+    <p-button icon="pi pi-check" (click)="toogleModalInfo()" label="Ok" styleClass="p-button-text"></p-button>
+  </ng-template>
+</p-dialog>
+

@@ -1,0 +1,29 @@
+.div-between {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.div-right {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+}
+
+.div-space {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  margin: 1.5rem;
+}
+
+.applications-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
+  flex-wrap: wrap;
+}
+
+.remove-link-color {
+  color: currentColor;
+}

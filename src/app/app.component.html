@@ -1,0 +1,5 @@
+<div>
+  <p-toast key="messages" position="top-center"></p-toast>
+  <p-confirmDialog [style]="{width: '50vw'}" [baseZIndex]="10000" rejectButtonStyleClass="p-button-outlined"></p-confirmDialog>
+  <router-outlet (activate)="onActivate($event)" (deactivate)="onDeactivate($event)"></router-outlet>
+</div>

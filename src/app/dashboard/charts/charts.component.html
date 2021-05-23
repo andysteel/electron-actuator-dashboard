@@ -1,0 +1,199 @@
+<div class="p-m-3">
+  <div class="p-grid">
+    <div class="p-sm-3 p-md-3 p-lg-3 p-xl-3">
+      <fa-icon [icon]="faChartLine" [styles]="{'font-size': '5em'}"></fa-icon>
+    </div>
+  </div>
+  <div class="p-grid">
+    <div class="p-sm-3 p-md-3 p-lg-3 p-xl-3">
+      <p>Actuator Monitoring</p>
+    </div>
+    <div class="p-sm-6 p-md-6 p-lg-6 p-xl-6"></div>
+    <div class="p-sm-3 p-md-3 p-lg-3 p-xl-3">
+      <div style="direction: rtl;">
+        <button pButton pRipple type="button" class="p-button-rounded" (click)="gotoHome()">&nbsp;<fa-icon [icon]="faArrowLeft"></fa-icon></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p-divider align="left">
+  <div class="p-d-inline-flex p-ai-center">
+      <fa-icon [icon]="faCog" [styles]="{'font-size': '1.5em'}"></fa-icon>
+      &nbsp;
+      <b>Application {{application?.name}}</b>
+  </div>
+</p-divider>
+
+<div *ngIf="!isErrorMessage()" class="espacamento-main">
+
+  <p-menubar [model]="items"></p-menubar>
+
+  <div class="p-grid espacamento-main">
+    <div class="p-sm-3 p-md-3 p-lg-3">
+      <p-card styleClass="response-2xx">
+        <div class="card-main">
+          <fa-icon [icon]="faCheckCircle" [styles]="{'font-size': '2.5em'}"></fa-icon>
+          <h6 style="font-size: 1.5em;">2XX Response</h6>
+        </div>
+        <div class="card-main">
+          <h2 style="font-size: 1.5em;">{{http200Traces?.length}}</h2>
+        </div>
+      </p-card>
+    </div>
+    <div class="p-sm-3 p-md-3 p-lg-3">
+      <p-card styleClass="response-4xx">
+        <div class="card-main">
+          <fa-icon [icon]="faExclamationCircle" [styles]="{'font-size': '2.5em'}"></fa-icon>
+          <h6 style="font-size: 1.5em;">4XX Response</h6>
+        </div>
+        <div class="card-main">
+          <h2 style="font-size: 1.5em;">{{http400Traces?.length}}</h2>
+        </div>
+      </p-card>
+    </div>
+    <div class="p-sm-3 p-md-3 p-lg-3">
+      <p-card styleClass="response-404">
+        <div class="card-main">
+          <fa-icon [icon]="faBan" [styles]="{'font-size': '2.5em'}"></fa-icon>
+          <h6 style="font-size: 1.5em;">404&nbsp; Response</h6>
+        </div>
+        <div class="card-main">
+          <h2 style="font-size: 1.5em;">{{http404Traces?.length}}</h2>
+        </div>
+      </p-card>
+    </div>
+    <div class="p-sm-3 p-md-3 p-lg-3">
+      <p-card styleClass="response-5xx">
+        <div class="card-main">
+          <fa-icon [icon]="faBug" [styles]="{'font-size': '2.5em'}"></fa-icon>
+          <h6 style="font-size: 1.5em;">5XX Response</h6>
+        </div>
+        <div class="card-main">
+          <h2 style="font-size: 1.5em;">{{http500Traces?.length}}</h2>
+        </div>
+      </p-card>
+    </div>
+  </div>
+
+  <div class="p-grid espacamento-main">
+    <div class="p-sm-6 p-md-6 p-lg-6"> HTTP RESPONSE
+      <canvas id="barChart" style="display: block;"></canvas>
+    </div>
+    <div class="p-sm-6 p-md-6 p-lg-6">HTTP RESPONSE
+      <canvas id="pieChart" style="display: block;"></canvas>
+    </div>
+  </div>
+  <br />
+  <div class="p-grid espacamento-main">
+    <div class="p-sm-6 p-md-16 p-lg-6">MEMORY MANAGEMENT
+      <canvas id="horizontalBarChart" style="display: block;"></canvas>
+    </div>
+
+    <div class="p-sm-6 p-md-16 p-lg-6">DISK SPACE DETAIL
+      <canvas id="doughnutChart" style="display: block;"></canvas>
+    </div>
+  </div>
+
+  <div class="p-sm-12 p-md-12 p-lg-12">
+    <h5>HTTP Traces</h5>
+    <p-table [value]="traces" [paginator]="true" [rows]="10" [showCurrentPageReport]="true" id="httptrace-table"
+    currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries" [rowsPerPageOptions]="[10,25,50]">
+    <ng-template pTemplate="caption">
+      <div class="p-d-flex">
+          <button type="button" pButton pRipple icon="pi pi-file-excel" (click)="exportTableToExcel()" class="p-button-success p-mr-2"  pTooltip="XLS" tooltipPosition="bottom"></button>
+      </div>
+    </ng-template>
+    <ng-template pTemplate="header">
+        <tr>
+            <th>Time Stamp</th>
+            <th>Method</th>
+            <th>Time Taken(ms)</th>
+            <th>Status</th>
+            <th>URI</th>
+            <th>View</th>
+        </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-trace>
+        <tr>
+          <td (click)="onSelectTrace(trace)">{{trace?.timestamp | date:'medium'}}</td>
+          <td (click)="onSelectTrace(trace)">{{trace?.request.method}}</td>
+          <td (click)="onSelectTrace(trace)">{{trace?.timeTaken}}</td>
+          <td (click)="onSelectTrace(trace)" [ngSwitch]="trace?.response.status">
+            <span  *ngSwitchCase="'200'"><p-badge [value]="trace?.response.status"  severity="success"></p-badge></span>
+            <span  *ngSwitchCase="'400'"><p-badge [value]="trace?.response.status"  severity="warning"></p-badge></span>
+            <span  *ngSwitchCase="'404'"><p-badge [value]="trace?.response.status"  severity="info"></p-badge></span>
+            <span  *ngSwitchCase="'500'"><p-badge [value]="trace?.response.status"  severity="danger"></p-badge></span>
+            <span *ngSwitchDefault class="badge badge-primary"><p-badge [value]="trace?.response.status"></p-badge></span>
+          </td>
+          <td (click)="onSelectTrace(trace)">{{trace?.request.uri}}</td>
+          <td>
+            &nbsp;&nbsp;&nbsp;<fa-icon (click)="onSelectTrace(trace)" class="clickable" [icon]="faEye" [styles]="{'font-size': '1.5em'}"></fa-icon>
+          </td>
+        </tr>
+    </ng-template>
+    <ng-template pTemplate="paginatorleft">
+        <p-button type="button" icon="pi pi-plus" styleClass="p-button-text"></p-button>
+    </ng-template>
+    <ng-template pTemplate="paginatorright">
+        <p-button type="button" icon="pi pi-cloud" styleClass="p-button-text"></p-button>
+    </ng-template>
+    </p-table>
+  </div>
+
+  <!-- Button trigger modal -->
+  <button hidden="true" type="button" (click)="toggleModalVisible()" id="trace-modal" data-toggle="modal"></button>
+
+  <p-dialog header="HTTP Trace Details" [(visible)]="isModalVisible" [style]="{width: '50vw'}" [baseZIndex]="10000">
+    <h2>REQUEST</h2>
+    <div id="request">
+      <p>
+        <strong>Time Stamp:</strong>
+        {{selectedTrace?.timestamp | date:'medium'}}
+      </p>
+      <p>
+        <strong>Time Taken(ms):</strong>
+        {{selectedTrace?.timeTaken}}
+      </p>
+      <p>
+        <strong>Request Method:</strong>
+        {{selectedTrace?.request.method}}
+      </p>
+      <p *ngIf="selectedTrace?.principal">
+        <strong>Logged User:</strong>
+        {{selectedTrace?.principal?.name}}
+      </p>
+      <p>
+        <strong>Remote Address:</strong>
+        {{selectedTrace?.request.remoteAddress}}
+      </p>
+      <p>
+        <strong>URI:</strong>
+        {{selectedTrace?.request.uri}}
+      </p>
+      <p>
+        <strong>Origin:</strong>
+        {{selectedTrace?.request.headers['origin']}}
+      </p>
+      <p>
+        <strong>User Agent (Web Client):</strong>
+        {{selectedTrace?.request.headers['user-agent']}}
+      </p>
+    </div>
+    <h2>RESPONSE</h2>
+    <div id="response">
+      <dl>
+        <dt>Status:</dt>
+        <dd>{{selectedTrace?.response.status}}</dd>
+      </dl>
+      <p>
+        <strong>Server Allowed Origins:</strong>
+        {{selectedTrace?.response.headers['Access-Control-Allow-Origin']}}
+      </p>
+    </div>
+    <ng-template pTemplate="footer">
+        <p-button icon="pi pi-check" (click)="toggleModalVisible()" label="Ok" styleClass="p-button-text"></p-button>
+    </ng-template>
+  </p-dialog>
+
+</div>
