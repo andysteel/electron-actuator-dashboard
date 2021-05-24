@@ -1,6 +1,6 @@
 const { ipcMain } = require('electron');
 const { addApplication, findAllActiveApplication, disableApplication,
-  findAllInactiveApplication, enableApplication, updateApplication } = require('../models/Application');
+  findAllInactiveApplication, enableApplication, updateApplication } = require('../models/Application.js');
 
 module.exports = {
   //Application event operations

@@ -2,8 +2,7 @@ const { app, BrowserWindow, screen, Tray } = require('electron');
 const path = require('path');
 const url = require('url');
 const { addAppEvent, disableAppEvent, enableAppEvent, findAllAppEvent,
-  findAllInactiveAppEvent, updateAppEvent } = require('./backend/services/ApplicationService');
-const unhandled = require('electron/common/');
+  findAllInactiveAppEvent, updateAppEvent } = require('./backend/services/ApplicationService.js');
 
 let window = null
 
@@ -27,7 +26,7 @@ const createWindow = () => {
     darkTheme: false,
     webPreferences: {
       nodeIntegration: true,
-      allowRunningInsecureContent: (serve) ? true : false,
+      allowRunningInsecureContent: true,
       contextIsolation: false,  // false if you want to run 2e2 test with Spectron
       enableRemoteModule : true // true if you want to run 2e2 test  with Spectron or use remote module in renderer context (ie. Angular)
     },
@@ -78,22 +77,21 @@ const createTray = () => {
   return tray;
 }
 
-const App = () => {
-  createWindow();
-  createTray();
-}
+app.on('ready', createWindow);
 
-app.on('ready', App)
+app.whenReady().then(() => {
+  createTray();
+})
 
 app.on('window-all-closed', () => {
   if(process.platform !== 'darwin') {
     app.quit()
   }
   window = null
-})
+});
 
 app.on('activate', () => {
   if(window === null) {
-    createWindow()
+    createWindow();
   }
-})
+});
